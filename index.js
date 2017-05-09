@@ -9,10 +9,10 @@ var M = {
 };
 
 // Définition de la carte en SVG avec le cadre notamment
-function main(){
-  M.svg = d3.select("svg.choropleth");
-  M.width = M.svg.attr('width');
-  M.height = M.svg.attr('height');
+// function main(){
+//   M.svg = d3.select("svg.choropleth");
+//   M.width = M.svg.attr('width');
+//   M.height = M.svg.attr('height');
 
 // Définition d'une géométrie géoJSON en SVG
   M.path = d3.geoPath();
@@ -31,11 +31,11 @@ function main(){
         M.dataSeries.push(parseFloat(d.p_fem_singl_2034))
       }
     )
-    .await(drawMap);
+    .addTo(map);
 }
 
 
-function drawMap(error, data){
+function map(error, data){
   if (error) throw error;
 
   // The TopoJSON contains raw coordinates in CRS CH1903/LV03.
@@ -80,7 +80,7 @@ function drawMap(error, data){
     .attr('fill', function(d){
       return M.data[d.properties.id] ?
         M.color(M.data[d.properties.id].p_fem_singl_2034) :
-        '#fff'; // Code couleur pour les données manquantes. 
+        '#fff'; // Code couleur pour les données manquantes.
     })
     .attr('d', M.path);
 
@@ -102,3 +102,6 @@ function drawMap(error, data){
     .enter().append('path')
     .attr('fill', '#777').attr('d', M.path);
 }
+
+
+// addTo(map): 
