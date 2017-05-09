@@ -1,18 +1,13 @@
-var map = L.map("mapdiv",{center:[46.8, 8.3],zoom:8});
-L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-}).addTo(map);
-
 var M = {
   bbox: [485000, 75000, 834000, 296000],
   data: {}, dataSeries: [],
 };
 
 // Définition de la carte en SVG avec le cadre notamment
-// function main(){
-//   M.svg = d3.select("svg.choropleth");
-//   M.width = M.svg.attr('width');
-//   M.height = M.svg.attr('height');
+function main(){
+  M.svg = d3.select("svg.choropleth");
+  M.width = M.svg.attr('width');
+  M.height = M.svg.attr('height');
 
 // Définition d'une géométrie géoJSON en SVG
   M.path = d3.geoPath();
@@ -31,11 +26,11 @@ var M = {
         M.dataSeries.push(parseFloat(d.p_fem_singl_2034))
       }
     )
-    .addTo(map);
+    .await(drawMap);
 }
 
 
-function map(error, data){
+function drawMap(error, data){
   if (error) throw error;
 
   // The TopoJSON contains raw coordinates in CRS CH1903/LV03.
@@ -80,7 +75,7 @@ function map(error, data){
     .attr('fill', function(d){
       return M.data[d.properties.id] ?
         M.color(M.data[d.properties.id].p_fem_singl_2034) :
-        '#fff'; // Code couleur pour les données manquantes.
+        '#fff'; // Code couleur pour les données manquantes. 
     })
     .attr('d', M.path);
 
@@ -102,6 +97,3 @@ function map(error, data){
     .enter().append('path')
     .attr('fill', '#777').attr('d', M.path);
 }
-
-
-// addTo(map): 
