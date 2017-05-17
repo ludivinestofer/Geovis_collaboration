@@ -26,6 +26,18 @@ function main(){
       }
     )
     .await(drawMap);
+
+
+  // Fonction pour adapter la carte à la fenêtre
+  var mapResize = function(){
+    d3.select('#mapdiv')
+      .style('height', '100vh');
+  };
+  // Adapter la carte à la fenêtre
+  mapResize();
+  // Lancer le redimensionnement lors d'un changement de la taille de la fenêtre:
+  window.onresize = mapResize;
+  
 }
 
 
@@ -55,21 +67,24 @@ function drawMap(error, data){
     .domain(M.breaks.slice(1,6))
     .range(M.brew.getColors());
 
+
+  // Ci-dessous le code qui permet de faire une projection
+  // de CH1903 à WGS84 directement dans le navigateur.
+  // Ce n'est pas optimal, car un peu lent, mais ça fonctionne.
+  var projectPoint = function(x,y){
+    var pt_wgs84 = M.proj.inverse([x,y]);
+    var pt = M.map.latLngToLayerPoint(new L.LatLng(pt_wgs84[1], pt_wgs84[0]));
+    this.stream.point(pt.x, pt.y);
+  };
+
+
   // Créer la couche d3. On y passe la fonction qui permet de
   // dessiner la couche (donc les instructions pour d3)
   M.communesOverlay = L.d3SvgOverlay(function(sel, proj){
 
-    // Ci-dessous le code qui permet de faire une projection
-    // de CH1903 à WGS84 directement dans le navigateur.
-    // Ce n'est pas optimal, car un peu lent, mais ça fonctionne.
-    var projectPoint = function(x,y){
-      var pt_wgs84 = M.proj.inverse([x,y]);
-      var pt = M.map.latLngToLayerPoint(new L.LatLng(pt_wgs84[1], pt_wgs84[0]));
-      this.stream.point(pt.x, pt.y);
-    };
+    // Code pour la projection de la couche:
     var geopath = proj.pathFromGeojson
       .projection(d3.geoTransform({point: projectPoint}));
-    // Fin du code de projection.
 
     var features = sel.selectAll('path')
       .data(topojson.feature(data, data.objects.communes).features);
@@ -101,6 +116,48 @@ function drawMap(error, data){
 
   // Ajouter la couche d3 à la carte Leaflet
   M.communesOverlay.addTo(M.map);
+
+
+
+  // Ajouter les limites des cantons comme nouvelle couche Leaflet
+  M.cantonsOverlay = L.d3SvgOverlay(function(sel, proj){
+
+    // Code pour la projection de la couche:
+    var geopath = proj.pathFromGeojson
+      .projection(d3.geoTransform({point: projectPoint}));
+
+    var features = sel.selectAll('path')
+      .data(topojson.feature(data, data.objects.cantons).features);
+
+    features
+      .enter()
+      .append('path')
+      .attr('stroke','white')
+      .attr('stroke-width', 0.6)
+      .attr('fill', 'none')
+      .attr('d', geopath);
+
+    features
+      .attr('stroke-width', 0.6 / proj.scale);
+  }).addTo(M.map);
+
+
+  // Ajouter les lacs
+  M.lacsOverlay = L.d3SvgOverlay(function(sel, proj){
+
+    var geopath = proj.pathFromGeojson
+      .projection(d3.geoTransform({point: projectPoint}));
+
+    var features = sel.selectAll('path')
+      .data(topojson.feature(data, data.objects.lacs).features);
+
+    features
+      .enter()
+      .append('path')
+      .attr('class', 'lacs')
+      .attr('d', geopath);
+
+  }).addTo(M.map);
 }
 
 
